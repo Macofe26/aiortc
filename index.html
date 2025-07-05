@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Prueba WebRTC aiortc</title>
+</head>
+<body>
+  <h1>WebRTC aiortc Test</h1>
+  <video id="video" autoplay playsinline></video>
+  <script>
+    const pc = new RTCPeerConnection();
+
+    pc.ontrack = function(event) {
+      const el = document.getElementById("video");
+      el.srcObject = event.streams[0];
+    };
+
+    async function start() {
+      const offer = await pc.createOffer();
+      await pc.setLocalDescription(offer);
+
+      const response = await fetch("/offer", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({sdp: pc.localDescription.sdp, type: pc.localDescription.type}),
+      });
+
+      const answer = await response.json();
+      await pc.setRemoteDescription(answer);
+    }
+
+    start();
+  </script>
+</body>
+</html>
